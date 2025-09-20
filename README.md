@@ -5,7 +5,7 @@ A fully-featured and decoupled chess graphical interface developed as part of a 
 **Note:** This repository contains only the GUI components I developed. The complete project requires game engine and network components that aren't included here as they're not my sole work to share.
 
 ![Chess GUI Themes](themes_screenshot.png)
-*Five available themes: Classic, Pink Party, Van Beach, Rock Climbing & Chat, and minimalist*
+*Five available themes: Classic, Pizza Party, Vim Beach, Rock Climbing & Chai, and Cheerful Dystopia*
 
 ## Features
 
@@ -27,7 +27,7 @@ The GUI follows a **Model-View-Controller (MVC)** pattern with the GUI component
 
 **Observer Pattern**: The GUI components implement `GameStateListener` to receive updates from the game engine without direct coupling. When game state changes occur, the engine notifies all registered listeners, triggering appropriate visual updates.
 
-**Observer with Callback**: Pawn promotion uses the `PromotionHandler` interface to pause the game engine thread while awaiting user selection. This was a particularly tricky piece of engineering, requiring the GUI to block the engine's thread (not just the EDT) until the user chooses their promotion piece.
+**Observer with Callback**: Pawn promotion uses the `PromotionHandler` interface to pause the game engine thread while awaiting user selection. This requires the GUI to block the engine's thread (not just the EDT) until the user chooses their promotion piece.
 
 **Singleton Pattern**: The `GuiThemes` enum manages theme switching globally, with all themeable components registering via the `Themeable` interface for dynamic restyling.
 
@@ -113,7 +113,7 @@ Smart Enum-based theme system managing five distinct colour schemes. Components 
 
 ## Pawn Promotion Sequence
 
-The pawn promotion demonstrates the sophisticated interaction between GUI and game engine through interfaces:
+The pawn promotion demonstrates the complex interaction between GUI and game engine through interfaces:
 
 ```mermaid
 sequenceDiagram
