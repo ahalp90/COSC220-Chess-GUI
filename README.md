@@ -181,10 +181,10 @@ The API uses simple `int[]` arrays for positions `[row, col]` and provides both 
 ## Team Credits
 
 **CheckMates Team (COSC220)**
-- **Myself** - Lead GUI developer, GridValidator API abstraction
+- **Myself** - GUI developer, GridValidator API abstraction
 - **Geoffrey Stewart-Richardson** - Game engine architecture, original movement validation logic
-- **Joshua Hahn** - Network architecture and server implementation
-- **Curtis Martin** - Game logic and rule implementation
+- **Joshua Hahn** - Networking and integration
+- **Curtis Martin** - Integration and testing
 
 ## Technical Notes
 
