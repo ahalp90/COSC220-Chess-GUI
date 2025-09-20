@@ -1,6 +1,6 @@
 # COSC220 Chess GUI
 
-A comprehensive chess graphical interface developed as part of a COSC220 team project. I served as lead GUI developer, designing and implementing the graphical interface layer for our multiplayer chess application, CheckMates.
+A fully-featured and decoupled chess graphical interface developed as part of a COSC220 team project. I served as lead GUI developer, designing and implementing the graphical interface layer for our multiplayer chess application, CheckMates.
 
 **Note:** This repository contains only the GUI components I developed. The complete project requires game engine and network components that aren't included here as they're not my sole work to share.
 
