@@ -1,77 +1,193 @@
-# Checkmates: A Java Chess Minigame
+# COSC220 Chess GUI
 
-A multiplayer chess game developed as a group project for a university course. This application is built using Java Swing for the graphical user interface and is designed to integrate with a university-provided minigame server framework.
+A comprehensive chess graphical interface developed as part of a COSC220 team project. I served as lead GUI developer, designing and implementing the graphical interface layer for our multiplayer chess application, CheckMates.
 
-> ⚠️ **IMPORTANT: WORK IN PROGRESS & INCOMPLETE CODEBASE**
->
-> Please be aware that this is an **unfinished group project**. The code in this repository represents only the client-side components developed by our group.
->
-> The code **will not compile** on its own. This is because it relies on proprietary classes and a server architecture provided by the university, which are not included in this repository. The files are provided for demonstration of our work and code structure only.
->
-> Furthermore, comprehensive documentation, unit testing, and systematic bug-testing are not yet complete. This is a work in progress, and the current state reflects its developmental stage.
+**Note:** This repository contains only the GUI components I developed. The complete project requires game engine and network components that aren't included here as they're not my sole work to share.
 
-## Project Overview
-
-Checkmates is a classic chess game implemented as a client-server application. Players can join a game, play against each other in real-time, and communicate via an in-game chat. The game logic is handled by a custom-built engine that supports standard chess rules, including special moves like castling, en passant, and pawn promotion.
+![Chess GUI Themes](themes_screenshot.png)
+*Five available themes: Classic, Pink Party, Van Beach, Rock Climbing & Chat, and minimalist*
 
 ## Features
 
-### Core Features (Implemented)
-*   **Standard Chess Rules:** The engine correctly validates moves for all pieces, including pawns (initial two-square move, captures), rooks, knights, bishops, queens, and kings.
-*   **Graphical User Interface (GUI):** A user-friendly interface built with Java Swing, featuring:
-    *   An interactive, clickable chessboard.
-    *   Visual highlighting for selected pieces and available legal moves.
-    *   A display for move history.
-    *   A real-time chat box for player communication.
-    *   Dynamic board orientation (can be flipped).
-*   **Client-Server Architecture:** The game is designed for multiplayer gameplay, with the client sending moves to a server for validation and broadcasting the updated game state.
-*   **Pawn Promotion:** A modal dialog appears when a pawn reaches the final rank, allowing the player to choose their promotion piece (Queen, Rook, Bishop, or Knight).
-*   **Visual Feedback:** The board provides immediate visual feedback for illegal moves made while in check by flashing a red border.
-
-### Work in Progress / To-Do
-*   **Resign Functionality:** Implementing a "Resign" button to gracefully end the game.
-*   **Quit to Lobby:** A functional "Quit" button to return the player to the main server lobby.
-*   **Timer Synchronisation:** Full implementation and display of server-synchronised timers for each player.
-*   **Captured Pieces Display:** Finalising the UI components to display captured pieces for each player.
-*   **Comprehensive Bug Testing:** A thorough process of identifying and fixing bugs in both the engine and GUI.
-*   **Code Refactoring and Documentation:** Improving comments, Javadoc, and overall code organisation.
+* Full chess board visualization with piece rendering
+* Interactive move selection via mouse clicks with legal move highlighting
+* Multiple colour themes with dynamic switching
+* Captured pieces display
+* Move history and chat panels
+* Game timers for both players
+* Pawn promotion dialog with piece selection
+* Board flip functionality for perspective switching
+* Responsive design that maintains board square aspect ratio
 
 ## Architecture
 
-The project follows a decoupled architecture to separate concerns, primarily divided into three main packages:
+The GUI follows a **Model-View-Controller (MVC)** pattern with the GUI components serving as both View and Controller, while the game engine (not included) acts as the Model.
 
-1.  **Engine (`minigames.client.checkmates.engine`)**
-    *   This package contains the "brains" of the game. It is completely independent of the GUI.
-    *   `GameBoard.java` manages the overall game state, including the board layout (as a `ChessPiece[][]` array), turn management, move history, and game-over conditions. It processes moves based on Forsyth-Edwards Notation (FEN).
-    *   `moveValidator.java` is a static utility class that contains all the complex chess rule logic, such as calculating legal moves, detecting checks, and validating special moves.
-    *   `ChessPiece.java` is a data class representing a single piece on the board.
+### Key Design Patterns
 
-2.  **GUI (`minigames.client.checkmates.gui`)**
-    *   This package handles all visual rendering and user interaction using Java Swing.
-    *   `GameGui.java` is the main frame that assembles all UI components like the chat, move history, and timers.
-    *   `ChessBoardPanel.java` is the core interactive component where the 8x8 grid, pieces, and highlights are drawn. It captures mouse clicks and translates them into game actions.
-    *   `ChessBoardContainer.java` is a wrapper for the `ChessBoardPanel` that adds axis labels (A-H, 1-8) and areas for captured pieces.
+**Observer Pattern**: The GUI components implement `GameStateListener` to receive updates from the game engine without direct coupling. When game state changes occur, the engine notifies all registered listeners, triggering appropriate visual updates.
 
-3.  **Client (`minigames.client.checkmates`)**
-    *   This package acts as the "glue" connecting the Engine and GUI to the network.
-    *   `Checkmates.java` implements the `GameClient` interface from the university framework. It handles communication with the game server, sending player commands (moves, chat messages) and receiving game state updates.
-    *   Interfaces like `GameStateListener` and `PromotionHandler` are used to ensure loose coupling between the engine and the GUI.
+**Observer with Callback**: Pawn promotion uses the `PromotionHandler` interface to pause the game engine thread while awaiting user selection. This was a particularly tricky piece of engineering, requiring the GUI to block the engine's thread (not just the EDT) until the user chooses their promotion piece.
 
-## Code Structure Highlights
+**Singleton Pattern**: The `GuiThemes` enum manages theme switching globally, with all themeable components registering via the `Themeable` interface for dynamic restyling.
 
-*   **`Checkmates.java`**: The main client class. Initialises the game, manages server communication, and orchestrates updates between the engine and GUI.
-*   **`gui/GameGui.java`**: Constructs the main application window and all its child components (chat, move history, etc.).
-*   **`gui/ChessBoardPanel.java`**: Handles the rendering of and user interaction with the chessboard itself. All mouse events related to piece movement are processed here.
-*   **`engine/GameBoard.java`**: The central model for the game state. It holds the piece positions and applies the game rules by calling `moveValidator`.
-*   **`engine/moveValidator.java`**: A pure-logic static class containing the rules of chess. It determines all possible and legal moves from any given position.
+### Class Diagram
 
-## Authors
+```mermaid
+classDiagram
+    direction LR
+    class GameGui {
+        <<View & Controller>>
+        -chessBoardContainer
+        +appendChatMessage()
+        +getPromotionChoice()
+        +onGameStateUpdate()
+    }
+    class ChessBoardContainer {
+        <<View>>
+        -chessBoardPanel
+        -isWhiteAtBottom
+        +flipBoard()
+        +updateCapturedPieces()
+    }
+    class ChessBoardPanel {
+        <<View & Controller>>
+        -gameBoard
+        -originSquare
+        ~handleMouseEvents()
+        +flipBoard()
+        +applyTheme()
+    }
+    class CapturedPiecePanel {
+        <<View>>
+        -iconsToDraw
+        +setIcons()
+    }
+    class GuiThemes {
+        <<Singleton>>
+        -currentTheme
+        -themeableComponents
+        +switchTheme()
+        +register()
+    }
+    class GameStateListener {
+        <<Interface>>
+        +onGameStateUpdate()
+    }
+    class PromotionHandler {
+        <<Interface>>
+        +getPromotionChoice()
+    }
+    class Themeable {
+        <<Interface>>
+        +applyTheme()
+    }
+    GameGui "1" *-- "1" ChessBoardContainer : contains
+    ChessBoardContainer "1" *-- "1" ChessBoardPanel : contains
+    ChessBoardContainer "1" *-- "2" CapturedPiecePanel : contains
+    GameGui ..|> GameStateListener : implements
+    GameGui ..|> PromotionHandler : implements (for callback)
+    GameGui ..|> Themeable : implements
+    ChessBoardContainer ..|> GameStateListener : implements
+    ChessBoardContainer ..|> Themeable : implements
+    ChessBoardPanel ..|> Themeable : implements
+    GuiThemes "1" o-- "*" Themeable : triggers updates on
+```
 
-*   Ariel Halperin
-*   Geoffrey Stewart-Richardson
-*   Joshua Hahn
-*   Curtis Martin
+## Core Components
 
-## Acknowledgements
+### GameGui
+The main application panel and parent container for all visual elements. Manages the menu bar, timers, chat/move history panels, and hosts the pawn promotion dialogue popup.
 
-*   Chess piece assets sourced from [Wikimedia Commons](https://commons.wikimedia.org/wiki/Category:PNG_chess_pieces/Standard_transparent).
+### ChessBoardContainer
+Manages the overall board layout including axis labels (A-H, 1-8) and captured piece displays. Enforces square aspect ratio for the chess board regardless of window dimensions.
+
+### ChessBoardPanel
+The interactive chess board itself. Handles piece rendering and processes all mouse events for piece selection and movement. Translates pixel coordinates to board positions and delegates move validation to the game engine.
+
+### CapturedPiecePanel
+Custom JPanel implementation that displays captured pieces responsively. Draws icons directly rather than using traditional Swing layout managers to achieve the specific flow-from-left behaviour required.
+
+### GuiThemes
+Smart Enum-based theme system managing five distinct colour schemes. Components register via the `Themeable` interface and are notified when users switch themes.
+
+## Pawn Promotion Sequence
+
+The pawn promotion demonstrates the sophisticated interaction between GUI and game engine through interfaces:
+
+```mermaid
+sequenceDiagram
+    title GUI Sequence for Pawn Promotion
+
+    actor Player
+    participant ChessBoardPanel
+    participant GameBoard
+    participant PromotionHandler
+    participant GameGui
+
+    Player->>+ChessBoardPanel: Clicks e7, then e8
+    ChessBoardPanel->>+GameBoard: makeMove("e7", "e8")
+
+    note right of GameBoard: Pauses execution, waits for player choice
+    GameBoard->>+PromotionHandler: getPromotionChoice('w')
+    
+    note over PromotionHandler, GameGui: GameGui implements this interface
+    PromotionHandler->>+GameGui: (Call is received)
+    GameGui->>GameGui: showPawnPromotionDialogue()
+    note over Player, GameGui: Modal dialog shown, blocking thread
+    Player->>GameGui: Clicks "Queen" button
+
+    GameGui-->>-PromotionHandler: return 'q'
+    PromotionHandler-->>-GameBoard: (Piece selection returned)
+
+    note over GameBoard: Resumes makeMove, <br>replaces pawn with Queen
+    
+    GameBoard->>+GameGui: onGameStateUpdate()
+    note right of GameGui: GameGui receives call via<br/>GameStateListener interface
+    
+    GameGui-->>-GameBoard: 
+    GameBoard-->>-ChessBoardPanel: 
+    ChessBoardPanel-->>-Player: (Queen shown on board)
+```
+
+## Grid Validator API
+
+A static utility library for validating movement patterns on 2D grids, extracted from our chess move validation logic. While the core movement logic was developed by Geoffrey Stewart-Richardson, I created the API abstraction to make it reusable across different grid-based contexts.
+
+### Key Features
+- Position validation within grid bounds
+- Finding squares matching custom conditions
+- Straight-line movement with optional blocking
+- Adjacent square detection (4 or 8 directions)
+
+### Example Usage
+```java
+// Define a check for empty squares
+ObjectCheck isEmpty = new ObjectCheck() {
+    @Override
+    public boolean matches(Object obj) {
+        return obj == null;
+    }
+};
+
+// Get rook movement path until blocked
+List<int[]> rookPath = GridValidator.getStraightLineUntilBlocked(
+    row, col, direction, 7, board, isEmpty, false
+);
+```
+
+The API uses simple `int[]` arrays for positions `[row, col]` and provides both position-based and object-based checking through the `PositionCheck` and `ObjectCheck` interfaces.
+
+## Team Credits
+
+**CheckMates Team (COSC220)**
+- **Myself** - Lead GUI developer, GridValidator API abstraction
+- **Geoffrey Stewart-Richardson** - Game engine architecture, original movement validation logic
+- **Joshua Hahn** - Network architecture and server implementation
+- **Curtis Martin** - Game logic and rule implementation
+
+## Technical Notes
+
+The GUI was designed for clear separation of concerns, allowing our distributed team to develop asynchronously. The View components contain no game logic—they simply reflect model state. The Controller responsibilities are distributed across GUI components based on their domain. This architecture enabled features like board flipping and theme switching without the View needing to understand chess rules.
+
+The decision to use interfaces extensively (GameStateListener, PromotionHandler, Themeable) allowed the game engine to remain completely GUI-agnostic while still communicating state changes effectively.
